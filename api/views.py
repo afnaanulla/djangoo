@@ -36,6 +36,40 @@ class Register(APIView):
 
 class Login(APIView):
     permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            exists = User.objects.filter(username=username).exists()
+            return Response({
+                "detail": "Invalid credentials",
+                "user_exists": exists,
+            }, status=400)
+
+        login(request, user)
+        return Response({"username": user.username, "email": user.email})
+
+    permission_classes = [permissions.AllowAny]
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            # Debug log
+            exists = User.objects.filter(username=username).exists()
+            return Response({
+                "detail": "Invalid credentials",
+                "user_exists": exists,
+            }, status=400)
+
+        login(request, user)
+        return Response({"username": user.username, "email": user.email})
+
+    permission_classes = [permissions.AllowAny]
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
