@@ -10,43 +10,24 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-ALLOWED_HOSTS = ["djangoo-1wag.onrender.com", "localhost", "127.0.0.1"]  # or your Render subdomain
-# For cross-origin cookies:
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_HTTPONLY = False 
-# Set these to your frontend prod URL(s):
-CORS_ALLOWED_ORIGINS = [
-    "https://worldbank-dashboard.vercel.app",
-    "http://localhost:4200",   # for local dev
-]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://worldbank-dashboard.vercel.app",
-    "http://localhost:4200",
-]
-
 from pathlib import Path
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6sen7uaf7*wlrix7iq2p59-v)o&ks*yuev6u#kqfq=8#v-h#90'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-6sen7uaf7*wlrix7iq2p59-v)o&ks*yuev6u#kqfq=8#v-h#90')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+# Hosts configuration
+ALLOWED_HOSTS = ["*"]  # Be more specific in production: ["your-backend.onrender.com"]
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,25 +48,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",  # ✅ needed
-]
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
-}
-CORS_ALLOWED_ORIGINS = ["https://worldbank-dashboard.vercel.app"]
-CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = ["https://worldbank-dashboard.vercel.app"]
-
-# Static files (needed for Render later)
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
 
 ROOT_URLCONF = 'core.urls'
 
@@ -106,10 +70,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -117,10 +79,14 @@ DATABASES = {
     }
 }
 
+# REST Framework configuration
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -136,25 +102,62 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS and CSRF Settings
+# Update with your actual Vercel frontend URL
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://worldbank-dashboard.vercel.app')
+
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+    "http://localhost:4200",  # For local development
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    FRONTEND_URL,
+    "http://localhost:4200",  # For local development
+]
+
+# Production security settings (only when not in debug mode)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SAMESITE = "None"
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+else:
+    # Development settings
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
+
+# Additional CORS settings
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
